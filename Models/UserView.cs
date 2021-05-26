@@ -1,4 +1,6 @@
 ﻿
+using System;
+
 namespace SandfieldTest.Models
 {
     public class UserView
@@ -10,6 +12,7 @@ namespace SandfieldTest.Models
         public string Role { get; set; }
         public string AccessLevel { get; set; }
         public string PartName { get; set; }
+        public DateTime? DOB { get; set; }
 
     }
 }

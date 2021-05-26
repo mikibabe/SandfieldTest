@@ -1,8 +1,283 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Music Collection";
+} 
+<head>
+    <title></title>
+    <style>
+        #editform {
+            display: none;
+        }
+    </style>
+</head>
+
+<h3>User Detail </h3>
+<br />
+<div id="editform">
+    <form>
+        <div class="form-group">
+            <label>User Id</label>
+            <input type="text" class="form-control" id="txtUserId" />
+        </div>
+        <div class="form-group">
+            <label>Password</label>
+            <input type="text" class="form-control" id="txtPassword" />
+        </div>
+        <div class="form-group">
+            <label>Group</label>
+            <input type="text" class="form-control" id="txtGroup" />
+        </div>
+        <div class="form-group">
+            <label>Role</label>
+            <input type="text" class="form-control" id="txtRole" />
+        </div>
+        <div class="form-group">
+            <label>Part</label>
+            <div>
+                <select id="selPart"></select>
+            </div>
+        </div>
+        <div class="form-group" style="padding-top:30px">
+            <table>
+                <tr>
+                    <td><button id="btnCancel" type="button" class="btn">Cancel</button></td>
+                    <td style="padding-left:30px">
+                        <button id="btnSubmit" type="button" class="btn btn-primary">Submit</button>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </form>
+</div>
+
+<button id="btnAdd" type="button" class="btn btn-success">Add</button>
+<br />
+
+<table id="tbluser" class="table table-bordered table-responsive table-condensed">
+    <thead>
+        <tr class="btn-primary">
+            <th>#</th>
+            <th>User Id</th>
+            <th>Password</th>
+            <th>Group</th>
+            <th>Role</th>
+            <th>Part</th>
+            <th>Edit</th>
+            <th>Delete</th>
+        </tr>
+    </thead>
+    <tbody>
+    </tbody>
+</table>
+
+@section scripts{
+
+    <script>
+        var editUserId = 0;
+
+        $(function () {
+
+            loadUserGrid();
+            loadPartList();
+
+        });
+
+        $("#btnSubmit").click(function () {
+
+            var p = {
+                Id: editUserId,
+                UserId: $("#txtUserId").val().trim(),
+                Password: $("#txtPassword").val().trim(),
+                Group: $("#txtGroup").val().trim(),
+                Role: $("#txtRole").val().trim(),
+                PartId: parseInt($("#selPart").val())
+            }
+
+            if (editUserId > 0) {
+
+                $.ajax({
+                    type: 'PUT',
+                    contentType: 'application/json; charset=utf-8',
+                    url: '/User/Edit',
+                    data: JSON.stringify(p)
+                }).done(function (data, textStatus, jqXHR) {
+                    if (jqXHR.status === 200) {
+                        alert("Updated successfully!");
+                        loadUserGrid();
+                        $("#tbluser").show();
+                        $("#btnAdd").show();
+                        $("#editform").hide();
+                    } else {
+                        alert("Failed to update!");
+                    }
+                }).fail(function (xhr, status, error) {
+                    alert(error);
+                })
+                    .always(function () {
+                    });
+
+            } else {
+
+
+                $.ajax({
+                    type: 'POST',
+                    contentType: 'application/json; charset=utf-8',
+                    url: '/User/Add',
+                    data: JSON.stringify(p)
+                }).done(function (data, textStatus, jqXHR) {
+                    if (jqXHR.status === 200) {
+                        alert("Added successfully!");
+                        loadUserGrid();
+                        $("#tbluser").show();
+                        $("#btnAdd").show();
+                        $("#editform").hide();
+                    } else {
+                        alert("Failed to add!");
+                    }
+                }).fail(function (xhr, status, error) {
+                    alert(error);
+                })
+                    .always(function () {
+                    });
+
+
+            }
+
+        });
+
+        $("#btnAdd").click(function () {
+            editUserId = 0;
+            clearEditForm();
+
+            $("#tbluser").hide();
+            $("#btnAdd").hide();
+            $("#editform").show();
+        });
+
+        $("#btnCancel").click(function () {
+            $("#tbluser").show();
+            $("#btnAdd").show();
+            $("#editform").hide();
+        });
+
+        var loadPartList = function () {
+
+            var $select = $('#selPart')
+
+            $.get('/Part/All', function (data) {
+                console.log("data", data);;
+
+                $select.append('<option value=0>Select Part</option>');
+                $.each(data, function (i) {
+                    $select.append('<option value=' + this.id + '>Part ' + this.partName + '</option>');
+                })
+
+
+            })
+                .done(function (data, textStatus, jqXHR) {
+
+                })
+                .fail(function (xhr, status, error) {
+                    alert(error);
+                })
+                .always(function () {
+                });
+
+        };
+
+        var loadUserGrid = function () {
+
+            $("#tbluser tbody").empty();
+
+            $.get('/User/All', function (data) {
+                console.log("data", data);;
+                bindUserList(data);
+            })
+                .done(function (data, textStatus, jqXHR) {
+
+                })
+                .fail(function (xhr, status, error) {
+                    alert(error);
+                })
+                .always(function () {
+                });
+
+        };
+
+        var loadUserDetails = function (id) {
+
+            $.get('/User/' + id, function (data) {
+                bindUserDetails(data);
+            })
+                .done(function (data, textStatus, jqXHR) {
+
+                })
+                .fail(function (xhr, status, error) {
+                    alert(error);
+                })
+                .always(function () {
+                });
+        };
+
+        var editUser = function (id) {
+            editUserId = id;
+            $("#tbluser").hide();
+            $("#btnAdd").hide();
+            $("#editform").show();
+            loadUserDetails(id);
+        };
+
+        var deleteUser = function (id) {
+            $.ajax({
+                type: 'DELETE',
+                contentType: 'application/json; charset=utf-8',
+                url: '/User/' + id,
+                async: false
+            }).done(function (data, textStatus, jqXHR) {
+
+                if (jqXHR.status === 200) {
+                    alert("Deleted successfully!");
+                    loadUserGrid();
+                } else {
+                    alert("Failed to update!");
+                }
+            }).fail(function (xhr, status, error) {
+                alert(error);
+            })
+                .always(function () {
+                });
+        };
+
+        var bindUserList = function (d) {
+            $.each(d, function (i) {
+                i++;
+                var markup = "<tr><td>" + i + "</td><td>" + this.userId + "</td><td>" + this.password + "</td><td>" + this.group + "</td><td>"
+                    + this.role + "</td><td>" + this.partName + "</td><td><a href='#' onclick='editUser(" + this.id + ")'>Edit</a></td><td><a href='#'  onclick='deleteUser(" + this.id + ")'>Delete</a></td></tr>";
+                $("#tbluser tbody").append(markup);
+            })
+        };
+
+        var bindUserDetails = function (d) {
+            $("#txtUserId").val(d.userId);
+            $("#txtPassword").val(d.password);
+            $("#txtGroup").val(d.group);
+            $("#txtRole").val(d.role);
+            $("#selPart").val(d.partId);
+        };
+
+        var clearEditForm = function () {
+
+            $("#selPart").val(0);
+            $("#txtUserId").val("");
+            $("#txtUserId").val("");
+            $("#txtPassword").val("");
+            $("#txtGroup").val("");
+            $("#txtRole").val("");
+        };
+
+    </script>
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+
+
+
