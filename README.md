@@ -10,6 +10,9 @@ Install-Package Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation -Version 3.1.1
 # Setting
 
 StartUp >
+
 public void ConfigureServices(IServiceCollection services) { 
+
    services.AddControllersWithViews().AddRazorRuntimeCompilation(); 
+   
 }
