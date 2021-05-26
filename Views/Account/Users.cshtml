@@ -3,6 +3,10 @@
 }
 <head>
     <title></title>
+    <link href="//cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css" rel="stylesheet" />
+    <link href="//cdnjs.cloudflare.com/ajax/libs/bootstrap-validator/0.4.5/css/bootstrapvalidator.min.css" rel="stylesheet" />
+
+
     <style>
         #editform {
             display: none;
@@ -10,12 +14,13 @@
     </style>
 </head>
 
+
 <h3>User Detail </h3>
 <br />
 <div id="editform">
-    <form>
+    <form class="needs-validation" novalidate>
         <div class="form-group">
-            <label>User Id</label>
+            <label for="txtUserId">User Id</label>
             <input type="text" class="form-control" id="txtUserId" />
         </div>
         <div class="form-group">
@@ -31,16 +36,23 @@
             <input type="text" class="form-control" id="txtRole" />
         </div>
         <div class="form-group">
+            <label>DOB</label>
+            <div>
+                <input id="txtDOB" class="datepicker" data-date-format="mm/dd/yyyy">
+            </div>
+        </div>
+        <div class="form-group">
             <label>Part</label>
             <div>
-                 <select id="selPart"></select>            </div>
+                <select id="selPart"></select>
+            </div>
         </div>
         <div class="form-group" style="padding-top:30px">
             <table>
                 <tr>
                     <td><button id="btnCancel" type="button" class="btn">Cancel</button></td>
                     <td style="padding-left:30px">
-                        <button id="btnSubmit" type="button" class="btn btn-primary">Submit</button>
+                        <button id="btnSubmit" type="submit" class="btn btn-primary">Submit</button>
                     </td>
                 </tr>
             </table>
@@ -48,7 +60,8 @@
     </form>
 </div>
 
-<button id="btnAdd" type="button" class="btn btn-success">Add</button><br />
+<button id="btnAdd" type="button" class="btn btn-success">Add</button>
+<br />
 
 <table id="tbluser" class="table table-bordered table-responsive table-condensed">
     <thead>
@@ -59,6 +72,7 @@
             <th>Group</th>
             <th>Role</th>
             <th>Part</th>
+            <th>DOB</th>
             <th>Edit</th>
             <th>Delete</th>
         </tr>
@@ -68,18 +82,26 @@
 </table>
 
 @section scripts{
+    <script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
 
     <script>
         var editUserId = 0;
 
         $(function () {
-             
-            loadUserGrid(); 
+
+            $('.datepicker').datepicker({
+                format: 'dd/mm/yyyy'
+            });
+
+            loadUserGrid();
             loadPartList();
-             
+
         });
 
         $("#btnSubmit").click(function () {
+            var dobTxt = moment($("#txtDOB").val(), "DD/MM/YYYY");
+            var dobDate = dobTxt.toDate();
 
             var p = {
                 Id: editUserId,
@@ -87,7 +109,8 @@
                 Password: $("#txtPassword").val().trim(),
                 Group: $("#txtGroup").val().trim(),
                 Role: $("#txtRole").val().trim(),
-                PartId: parseInt($("#selPart").val())
+                PartId: parseInt($("#selPart").val()),
+                DOB: dobDate
             }
 
             if (editUserId > 0) {
@@ -96,7 +119,7 @@
                     type: 'PUT',
                     contentType: 'application/json; charset=utf-8',
                     url: '/User/Edit',
-                    data: JSON.stringify(p) 
+                    data: JSON.stringify(p)
                 }).done(function (data, textStatus, jqXHR) {
                     if (jqXHR.status === 200) {
                         alert("Updated successfully!");
@@ -110,8 +133,8 @@
                 }).fail(function (xhr, status, error) {
                     alert(error);
                 })
-                .always(function () {
-                });
+                    .always(function () {
+                    });
 
             } else {
 
@@ -120,7 +143,7 @@
                     type: 'POST',
                     contentType: 'application/json; charset=utf-8',
                     url: '/User/Add',
-                    data: JSON.stringify(p) 
+                    data: JSON.stringify(p)
                 }).done(function (data, textStatus, jqXHR) {
                     if (jqXHR.status === 200) {
                         alert("Added successfully!");
@@ -137,11 +160,11 @@
                     .always(function () {
                     });
 
-                 
+
             }
 
         });
-         
+
         $("#btnAdd").click(function () {
             editUserId = 0;
             clearEditForm();
@@ -165,20 +188,20 @@
                 console.log("data", data);;
 
                 $select.append('<option value=0>Select Part</option>');
-                $.each(data, function (i) { 
-                    $select.append('<option value=' + this.id +'>Part ' + this.partName + '</option>');
+                $.each(data, function (i) {
+                    $select.append('<option value=' + this.id + '>Part ' + this.partName + '</option>');
                 })
-                  
+
 
             })
-            .done(function (data, textStatus, jqXHR) {
+                .done(function (data, textStatus, jqXHR) {
 
-            })
-            .fail(function (xhr, status, error) {
-                alert(error);
-            })
-            .always(function () {
-            });
+                })
+                .fail(function (xhr, status, error) {
+                    alert(error);
+                })
+                .always(function () {
+                });
 
         };
 
@@ -189,19 +212,21 @@
             $.get('/User/All', function (data) {
                 console.log("data", data);;
                 bindUserList(data);
-            })  
-            .done(function (data, textStatus, jqXHR) {
+            })
+                .done(function (data, textStatus, jqXHR) {
 
-            })
-            .fail(function (xhr, status, error) {
-                alert(error);
-            })
-            .always(function () {
-            });
+                })
+                .fail(function (xhr, status, error) {
+                    alert(error);
+                })
+                .always(function () {
+                });
 
         };
-         
+
         var loadUserDetails = function (id) {
+
+            clearEditForm();
 
             $.get('/User/' + id, function (data) {
                 bindUserDetails(data);
@@ -241,25 +266,31 @@
             }).fail(function (xhr, status, error) {
                 alert(error);
             })
-            .always(function () {
-            });
+                .always(function () {
+                });
         };
 
         var bindUserList = function (d) {
             $.each(d, function (i) {
                 i++;
                 var markup = "<tr><td>" + i + "</td><td>" + this.userId + "</td><td>" + this.password + "</td><td>" + this.group + "</td><td>"
-                    + this.role + "</td><td>" + this.partName + "</td><td><a href='#' onclick='editUser(" + this.id + ")'>Edit</a></td><td><a href='#'  onclick='deleteUser(" + this.id + ")'>Delete</a></td></tr>";
+                    + this.role + "</td><td>" + this.partName + "</td><td>" +
+                    (this.dob ? moment(this.dob).format("Do MMM YYYY") : "") +
+                    "</td><td><a href='#' onclick='editUser(" + this.id + ")'>Edit</a></td><td><a href='#'  onclick='deleteUser(" + this.id + ")'>Delete</a></td></tr>";
                 $("#tbluser tbody").append(markup);
             })
         };
 
         var bindUserDetails = function (d) {
+
+            console.log("bindUserDetails", d);
             $("#txtUserId").val(d.userId);
             $("#txtPassword").val(d.password);
             $("#txtGroup").val(d.group);
             $("#txtRole").val(d.role);
             $("#selPart").val(d.partId);
+            $("#txtDOB").datepicker("update", (d.dob ? moment(d.dob).format("DD/MM/YYYY") : null));
+
         };
 
         var clearEditForm = function () {
@@ -270,6 +301,7 @@
             $("#txtPassword").val("");
             $("#txtGroup").val("");
             $("#txtRole").val("");
+            $("#txtDOB").datepicker("update", null);
         };
 
     </script>

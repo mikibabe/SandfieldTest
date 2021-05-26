@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using SandfieldTest.Models;
+using System;
 
 namespace SandfieldTest.Services
 {
@@ -53,7 +54,15 @@ namespace SandfieldTest.Services
         }
 
         public bool EditUser(Models.User dto)
-        { 
+        {
+            DateTime? DOB = null;
+
+            if (dto.DOB != null)
+            {
+                var offset = TimeZoneInfo.Local.GetUtcOffset(DateTime.UtcNow);
+                DOB = Convert.ToDateTime(dto.DOB).AddSeconds(offset.TotalSeconds);
+            }
+
             using (var conn = Helpers.DBConnection.GetDBConnection(_connectionString))
             {
                 var p = new DynamicParameters();
@@ -63,6 +72,7 @@ namespace SandfieldTest.Services
                 p.Add("@Group", dto.Group);
                 p.Add("@PartId", dto.PartId);
                 p.Add("@Role", dto.Role);
+                p.Add("@DOB", DOB);
 
                 int result = conn.Execute("usp_EditUser", p, commandType: CommandType.StoredProcedure); 
                 return (result > 0);
@@ -88,6 +98,7 @@ namespace SandfieldTest.Services
                 p.Add("@Group", dto.Group);
                 p.Add("@Role", dto.Role);
                 p.Add("@PartId", dto.PartId);
+                p.Add("@DOB", dto.DOB);
                 p.Add("@Id", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
                 var user = conn.Query<int>("usp_AddUser", p,
